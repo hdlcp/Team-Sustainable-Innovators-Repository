@@ -1,0 +1,33 @@
+/* src/index.css */
+@import "tailwindcss";
+
+
+
+@keyframes rotateAnanas {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes ondulation {
+  0% {
+    transform: translateY(0px);
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    transform: translateY(10px);
+    filter: hue-rotate(15deg);
+  }
+}
+
+.animate-rotateAnanas {
+  animation: rotateAnanas 6s linear infinite;
+  transform-style: preserve-3d;
+}
+
+.animate-ondulation {
+  animation: ondulation 4s ease-in-out infinite alternate;
+}
