@@ -1,0 +1,769 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "HydroNex API",
+    "description": "API pour la gestion des données hydrologiques",
+    "version": "1.0.0"
+  },
+  "host": "api-hydro-nex.onrender.com",
+  "basePath": "/",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "JWT Token obtenu après connexion. Format: 'Bearer <token>'"
+    }
+  },
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Connexion utilisateur",
+        "description": "Connectez-vous pour obtenir un token JWT qui sera utilisé pour les routes protégées",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Connexion réussie",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "string",
+                  "description": "Token JWT à utiliser pour les routes protégées"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Identifiants invalides"
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Inscription utilisateur",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Inscription réussie"
+          },
+          "400": {
+            "description": "Données invalides"
+          }
+        }
+      }
+    },
+    "/api/auth/verify-email/{token}": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Vérification de l'email",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email vérifié avec succès"
+          },
+          "400": {
+            "description": "Token invalide"
+          }
+        }
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Demande de réinitialisation de mot de passe",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email de réinitialisation envoyé"
+          },
+          "404": {
+            "description": "Utilisateur non trouvé"
+          }
+        }
+      }
+    },
+    "/api/auth/reset-password/{token}": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Réinitialisation du mot de passe",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "format": "password"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mot de passe réinitialisé avec succès"
+          },
+          "400": {
+            "description": "Token invalide"
+          }
+        }
+      }
+    },
+    "/api/dispositifs": {
+      "post": {
+        "tags": ["Dispositifs"],
+        "summary": "Créer un nouveau dispositif",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "nom",
+                "localisation",
+                "statut"
+              ],
+              "properties": {
+                "nom": {
+                  "type": "string",
+                  "description": "Nom du dispositif"
+                },
+                "localisation": {
+                  "type": "string",
+                  "description": "Localisation du dispositif"
+                },
+                "statut": {
+                  "type": "string",
+                  "description": "statut du dispositif"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Dispositif créé avec succès"
+          },
+          "400": {
+            "description": "Données invalides ou nom/localisation déjà utilisé"
+          },
+          "401": {
+            "description": "Non autorisé - Token JWT requis"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Dispositifs"],
+        "summary": "Obtenir la liste des dispositifs",
+        "responses": {
+          "200": {
+            "description": "Liste des dispositifs récupérée avec succès",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "nom": {
+                    "type": "string"
+                  },
+                  "localisation": {
+                    "type": "string"
+                  },
+                  "statut": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dispositifs/{dispositif_id}": {
+      "put": {
+        "tags": ["Dispositifs"],
+        "summary": "Mettre à jour un dispositif",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dispositif_id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID du dispositif"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "nom": {
+                  "type": "string",
+                  "description": "Nouveau nom du dispositif"
+                },
+                "localisation": {
+                  "type": "string",
+                  "description": "Nouvelle localisation du dispositif"
+                },
+                "statut": {
+                  "type": "string",
+                  "description": "Nouvel statut du dispositif"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dispositif mis à jour avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Non autorisé - Token JWT requis"
+          },
+          "404": {
+            "description": "Dispositif non trouvé"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Dispositifs"],
+        "summary": "Obtenir les détails d'un dispositif",
+        "parameters": [
+          {
+            "name": "dispositif_id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID du dispositif"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Détails du dispositif récupérés avec succès",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "nom": {
+                  "type": "string"
+                },
+                "localisation": {
+                  "type": "string"
+                },
+                "statut": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dispositif non trouvé"
+          }
+        }
+      }
+    },
+    "/api/donnees": {
+      "post": {
+        "tags": ["Données"],
+        "summary": "Créer une nouvelle entrée de données",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "dispositif_id",
+                "temperature",
+                "salinity",
+                "ph",
+                "turbidity",
+                "battery_level"
+              ],
+              "properties": {
+                "dispositif_id": {
+                  "type": "integer",
+                  "description": "ID du dispositif"
+                },
+                "temperature": {
+                  "type": "number",
+                  "description": "Température de l'eau en °C"
+                },
+                "salinity": {
+                  "type": "number",
+                  "description": "Salinité de l'eau en ppt"
+                },
+                "ph": {
+                  "type": "number",
+                  "description": "pH de l'eau"
+                },
+                "turbidity": {
+                  "type": "number",
+                  "description": "Turbidité de l'eau en NTU"
+                },
+                "battery_level": {
+                  "type": "number",
+                  "description": "Niveau de batterie en pourcentage"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Données créées avec succès"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "404": {
+            "description": "Dispositif non trouvé"
+          }
+        }
+      }
+    },
+    "/api/donnees/temps-reel": {
+      "get": {
+        "tags": ["Données"],
+        "summary": "Obtenir les données en temps réel",
+        "parameters": [
+          {
+            "name": "dispositif_id",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "description": "ID du dispositif"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Données récupérées avec succès",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "temperature": {
+                  "type": "number"
+                },
+                "salinity": {
+                  "type": "number"
+                },
+                "ph": {
+                  "type": "number"
+                },
+                "turbidity": {
+                  "type": "number"
+                },
+                "battery_level": {
+                  "type": "number"
+                },
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune donnée trouvée"
+          }
+        }
+      }
+    },
+    "/api/donnees/historique": {
+      "get": {
+        "tags": ["Données"],
+        "summary": "Obtenir l'historique des données",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "integer",
+            "default": 1,
+            "description": "Numéro de la page"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "type": "integer",
+            "default": 10,
+            "description": "Nombre d'éléments par page"
+          },
+          {
+            "name": "dispositif_id",
+            "in": "query",
+            "type": "integer",
+            "description": "ID du dispositif (optionnel)"
+          },
+          {
+            "name": "date_debut",
+            "in": "query",
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de début (optionnel)"
+          },
+          {
+            "name": "date_fin",
+            "in": "query",
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de fin (optionnel)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Données historiques récupérées avec succès",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "temperature": {
+                        "type": "number"
+                      },
+                      "salinity": {
+                        "type": "number"
+                      },
+                      "ph": {
+                        "type": "number"
+                      },
+                      "turbidity": {
+                        "type": "number"
+                      },
+                      "battery_level": {
+                        "type": "number"
+                      },
+                      "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                },
+                "page": {
+                  "type": "integer"
+                },
+                "per_page": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune donnée trouvée"
+          }
+        }
+      }
+    },
+    "/api/chat": {
+      "post": {
+        "tags": ["Chatbot"],
+        "summary": "Interagir avec le chatbot",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "message"
+              ],
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "description": "Message à envoyer au chatbot"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Réponse du chatbot générée avec succès",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "response": {
+                  "type": "string",
+                  "description": "Réponse du chatbot"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Message requis"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      }
+    },
+    "/api/newsletter/subscribe": {
+      "post": {
+        "tags": ["Newsletter"],
+        "summary": "Inscription à la newsletter",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "email",
+                "nom"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "Email de l'abonné"
+                },
+                "nom": {
+                  "type": "string",
+                  "description": "Nom de l'abonné"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inscription réussie"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      }
+    },
+    "/api/newsletter/unsubscribe": {
+      "post": {
+        "tags": ["Newsletter"],
+        "summary": "Désinscription de la newsletter",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "email"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "Email de l'abonné"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Désinscription réussie"
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "404": {
+            "description": "Abonné non trouvé"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      }
+    },
+    "/api/alertes": {
+      "get": {
+        "tags": ["Alertes"],
+        "summary": "Obtenir la liste des alertes et recommandations",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "integer",
+            "default": 1,
+            "description": "Numéro de la page"
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "type": "integer",
+            "default": 10,
+            "description": "Nombre d'éléments par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alertes récupérées avec succès",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "dispositif_id": {
+                        "type": "integer"
+                      },
+                      "alerte": {
+                        "type": "string"
+                      },
+                      "recommandation": {
+                        "type": "string"
+                      },
+                      "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer"
+                },
+                "page": {
+                  "type": "integer"
+                },
+                "per_page": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune alerte trouvée"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      }
+    }
+  }
+} 
